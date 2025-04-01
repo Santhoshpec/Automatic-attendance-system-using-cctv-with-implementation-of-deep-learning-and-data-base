@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        canvas { max-width: 600px; margin: 20px auto; }
+        img { width: 600px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Attendance Dashboard</h1>
+
+    <h3>📊 Attendance Count</h3>
+    <canvas id="attendanceChart"></canvas>
+
+    <h3>🔥 Real-Time Heatmap</h3>
+    <img id="heatmapImg" src="{{ url_for('static', filename='heatmap.png') }}" alt="Heatmap">
+
+    <script>
+        // Fetch Attendance Data
+        fetch('/attendance-data')
+            .then(response => response.json())
+            .then(data => {
+                const names = data.map(entry => entry.name);
+                const counts = names.reduce((acc, name) => {
+                    acc[name] = (acc[name] || 0) + 1;
+                    return acc;
+                }, {});
+
+                const labels = Object.keys(counts);
+                const values = Object.values(counts);
+
+                new Chart(document.getElementById("attendanceChart"), {
+                    type: "bar",
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: "Attendance Count",
+                            backgroundColor: "rgba(75, 192, 192, 0.2)",
+                            borderColor: "rgba(75, 192, 192, 1)",
+                            borderWidth: 1,
+                            data: values
+                        }]
+                    }
+                });
+            });
+
+        // Refresh Heatmap every 30 seconds
+        setInterval(() => {
+            fetch('/generate-heatmap')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.heatmap_url) {
+                        document.getElementById("heatmapImg").src = data.heatmap_url + "?t=" + new Date().getTime();
+                    }
+                });
+        }, 30000);
+    </script>
+</body>
+</html>

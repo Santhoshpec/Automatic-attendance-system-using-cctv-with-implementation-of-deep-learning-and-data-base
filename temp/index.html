@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Dashboard</title>
+    <script>
+        function loadAttendance() {
+            fetch("/attendance-data")
+                .then(response => response.json())
+                .then(data => {
+                    let tableBody = document.getElementById("attendanceTable");
+                    tableBody.innerHTML = "";
+                    data.forEach(row => {
+                        tableBody.innerHTML += `<tr><td>${row.name}</td><td>${row.timestamp}</td><td>---</td></tr>`;
+                    });
+                });
+        }
+
+        function refreshHeatmap() {
+            let timestamp = new Date().getTime();  // Force new image by appending timestamp
+            document.getElementById("heatmap").src = "/generate-heatmap?t=" + timestamp;
+        }
+
+        window.onload = function() {
+            loadAttendance();  // Load attendance data on page load
+            refreshHeatmap();  // Load heatmap on page load
+
+            setInterval(loadAttendance, 5000);  // Refresh attendance list every 5 seconds
+            setInterval(refreshHeatmap, 10000);  // Refresh heatmap every 10 seconds
+        };
+    </script>
+</head>
+<body>
+    <h1>Attendance Dashboard</h1>
+
+    <h2>📊 Attendance List</h2>
+    <table border="1">
+        <tr><th>Name</th><th>Entry Time</th><th>Exit Time</th></tr>
+        <tbody id="attendanceTable"></tbody>
+    </table>
+
+    <h2>🔥 Real-Time Heatmap</h2>
+    <img id="heatmap" src="/generate-heatmap" width="600" alt="Attendance Heatmap">
+</body>
+</html>
